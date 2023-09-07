@@ -89,7 +89,6 @@ def Conc2Age_Convolution(
     cutoff=1.0,
     positiv=False,
     comment=False,
-    deseas=False,
     res="c",
 ):
     """Calculate mean age from tracer observations.
@@ -124,8 +123,6 @@ def Conc2Age_Convolution(
         set this keyword to replace all negative values by 0 (not tested)
     comment: bool, optional
         print some info to the console. The default is False.
-    deseas: bool, optional, defaulkt value is False
-        deseas uses the ccg_filter filter functions by NOAA CCG ftp://ftp.cmdl.noaa.gov/user/thoning/ccgcrv/
     res: which rersolution is used for the forward calculation?
         c (Tracer Time series) or G (age spectrum, then use
         calculate_age_spectrum_1d and the default resolution in there).
@@ -136,7 +133,6 @@ def Conc2Age_Convolution(
     mean age, array of the same dimensions as c_obs or a float
 
     """
-
     c_ref = np.asarray([c_ref]).flatten()
     c_obs = np.asarray([c_obs]).flatten()
     # t_obs = np.asarray([t_obs]).flatten()
@@ -163,26 +159,16 @@ def Conc2Age_Convolution(
 
         c_tmp = a_tmp * np.nan
 
-        # !!! -- FP-20230608
-        # Felix Plöger 08/06/2023 !
-        wt = np.where(
-            np.logical_and((t_ref < (t_obs[0])), (t_ref > (t_obs[0] - t_int)))
-        )[
-            0
-        ]  # why is here a "0"?
-        t_tmp = t_obs[0] - t_ref[wt]
+        wt = (t_ref < (t_obs)) & (t_ref > (t_obs - t_int))
+        t_tmp = t_obs - t_ref[wt]
 
         t = np.flip(t_tmp, 0)
 
         # default: use resolution from observations
         if res == "c":
             for n in np.arange(len(a_tmp)):
-
-                # deseasonalize timeseries if deseas is True
-                c_ref_cut = handle_deseas(
-                    t_ref=t_ref[wt], c_ref=c_ref[wt], deseas=deseas
-                )
-                c_ref_rev = np.flip(c_ref_cut, 0)
+                c_ref = c_ref[wt]
+                c_ref_rev = np.flip(c_ref, 0)
                 age = a_tmp[n]
                 width = (rom * age) ** 0.5
                 G = (age ** 3 / (4 * np.pi * width ** 2 * t ** 3)) ** 0.5 * np.exp(
