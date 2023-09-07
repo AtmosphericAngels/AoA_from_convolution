@@ -1,9 +1,17 @@
+"""
+convolution_method_functions.py
+
+This module provides functions to calculate the mean age of air from suitable
+observations and a reference time series.
+
+Main function: Conc2Age_Convolution
+
+"""
+
 # Standard library imports
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import interpolate
-import datetime as dt
-import pdb
 
 
 def Calculate_AgeSpectrum_1D(m_age, rom, nyy=30, nmnth=12, per_month=30, plot=False):
@@ -38,7 +46,7 @@ def Calculate_AgeSpectrum_1D(m_age, rom, nyy=30, nmnth=12, per_month=30, plot=Fa
     G[:, 1] contains the probabilities
 
     """
-    w = (rom * m_age)**0.5
+    w = (rom * m_age) ** 0.5
 
     nt = nyy * nmnth * per_month
     dt = 1 / (nt / nyy)
@@ -46,26 +54,30 @@ def Calculate_AgeSpectrum_1D(m_age, rom, nyy=30, nmnth=12, per_month=30, plot=Fa
 
     G = np.zeros((len(t) + 1, 2))
 
-    # G[0, 0] = 0.  # this seems redundand to me, TW 2020-12-04
-    # G[0, 1] = 0.  # this semms redundand to me, TW 2020-12-04
-
     G[1:, 0] = t
-    G[1:, 1] = (m_age**3 / (4 * np.pi * w**2 * t**3))**0.5 * np.exp(-m_age * (t - m_age)**2 / (4 * w**2 * t))
+    G[1:, 1] = (m_age ** 3 / (4 * np.pi * w ** 2 * t ** 3)) ** 0.5 * np.exp(
+        -m_age * (t - m_age) ** 2 / (4 * w ** 2 * t)
+    )
 
-    # print(numpy.trapz(G[:,1], x = G[:,0]))
     G[:, 1] = G[:, 1] / np.trapz(G[:, 1], x=G[:, 0])
-    # print(numpy.trapz(G[:,1], x = G[:,0]))
     if plot:
         fig, ax = plt.subplots()
         ax.plot(G[:, 0], G[:, 1])
-        ax.set(xlabel='transit time (years)', ylabel='Probability (1/year)', title='Age Spectrum, Mean Age: ' + str(m_age) + ', Ratio of moments: ' + str(rom))
+        ax.set(
+            xlabel="transit time (years)",
+            ylabel="Probability (1/year)",
+            title="Age Spectrum, Mean Age: "
+            + str(m_age)
+            + ", Ratio of moments: "
+            + str(rom),
+        )
         ax.grid()
 
     return G
 
-#####################################################################
-#Conc2Age_Convolution
-#####################################################################
+
+# %%
+
 
 def Conc2Age_Convolution(
     t_ref,
@@ -78,7 +90,7 @@ def Conc2Age_Convolution(
     positiv=False,
     comment=False,
     deseas=False,
-    res = "c"
+    res="c",
 ):
     """Calculate mean age from tracer observations.
 
@@ -114,21 +126,21 @@ def Conc2Age_Convolution(
         print some info to the console. The default is False.
     deseas: bool, optional, defaulkt value is False
         deseas uses the ccg_filter filter functions by NOAA CCG ftp://ftp.cmdl.noaa.gov/user/thoning/ccgcrv/
-    res:which rersolution is used for the forward calculation? 
-        c (Tracer Time series, default) or G (age Spektrum, then use calculate_age_spectrum_1d and the default resolution in there) 
-        
+    res: which rersolution is used for the forward calculation?
+        c (Tracer Time series) or G (age spectrum, then use
+        calculate_age_spectrum_1d and the default resolution in there).
+        The default is c.
 
     Returns:
     --------
     mean age, array of the same dimensions as c_obs or a float
 
     """
-    #print('hello world')
+
     c_ref = np.asarray([c_ref]).flatten()
     c_obs = np.asarray([c_obs]).flatten()
-    #t_obs = np.asarray([t_obs]).flatten()
-    
-    #pdb.set_trace()
+    # t_obs = np.asarray([t_obs]).flatten()
+
     # a_obs (age observed) contains the sought age of air values for every observed mixing ratio (c_obs)
     # It is created as an array with the same shape as "c_obs" that contains only "nan" which will be replaced later on.
     a_obs = c_obs * np.nan
@@ -137,9 +149,7 @@ def Conc2Age_Convolution(
     vd = np.where(np.isfinite(c_obs))[0]
     # nvd is the number of valid values in c_obs
     nvd = len(vd)
-    
-    #pdb.set_trace()
-    
+
     if nvd > 0:
         if comment:
             print(
@@ -148,29 +158,30 @@ def Conc2Age_Convolution(
             )
 
         # a_tmp defines the range and resolution with which age of air can be calculated
-        # Age of air can be calculated from 1 to 10 years with an interpolation step of 1/10 years. 
+        # Age of air can be calculated from 1 to 10 years with an interpolation step of 1/10 years.
         a_tmp = np.linspace(cutoff, 10, int((10 - cutoff) * 10 + 1))
-        #pdb.set_trace()
-        
+
         c_tmp = a_tmp * np.nan
 
         # !!! -- FP-20230608
         # Felix Plöger 08/06/2023 !
-        wt = np.where(np.logical_and((t_ref < (t_obs[0])), (t_ref > (t_obs[0] - t_int))))[0]  # why is here a "0"?
+        wt = np.where(
+            np.logical_and((t_ref < (t_obs[0])), (t_ref > (t_obs[0] - t_int)))
+        )[
+            0
+        ]  # why is here a "0"?
         t_tmp = t_obs[0] - t_ref[wt]
 
-        
         t = np.flip(t_tmp, 0)
 
-        #pdb.set_trace()
-        
-        
-        #default: use resolution from observations
-        if res == "c": 
+        # default: use resolution from observations
+        if res == "c":
             for n in np.arange(len(a_tmp)):
-               
+
                 # deseasonalize timeseries if deseas is True
-                c_ref_cut = handle_deseas(t_ref=t_ref[wt], c_ref=c_ref[wt], deseas=deseas)
+                c_ref_cut = handle_deseas(
+                    t_ref=t_ref[wt], c_ref=c_ref[wt], deseas=deseas
+                )
                 c_ref_rev = np.flip(c_ref_cut, 0)
                 age = a_tmp[n]
                 width = (rom * age) ** 0.5
@@ -179,81 +190,74 @@ def Conc2Age_Convolution(
                 )
                 Int_G = np.trapz(G, t)
                 G = G / Int_G
-                #Modification to account for shifted mean AoA from normalization
+                # Modification to account for shifted mean AoA from normalization
                 AoA_G_fit = np.trapz(G * t, t)
-                time_shift = age - AoA_G_fit  
+                time_shift = age - AoA_G_fit
                 t_shift = t + time_shift
                 c_ref_rev_int_shift = np.interp(t_shift, t, c_ref_rev)
-                #c_G = c_ref_rev * G
-                            
-                
+
                 c_tmp[n] = np.trapz(c_ref_rev_int_shift * G, t)
-                
+
         else:
-            #pdb.set_trace()
-        
-            #print('else resolution from G')
+            # print('else resolution from G')
             for n in np.arange(len(a_tmp)):
                 age = a_tmp[n]
                 G = Calculate_AgeSpectrum_1D(age, rom)
 
-                fc_int = interpolate.interp1d(t_tmp, c_ref[wt], fill_value="extrapolate")
-                
-                c_int = fc_int(G[:,0])
-                # #Normiuerung von G muss evtl. noch auf 30 Jahre begrenzt werden
-                Int_G = np.trapz(G[:,1],G[:,0])
-                #print('Integral over G: ',Int_G) # the integral over the age Spectrum; should be close to 1, otherwise choose a longer t_int
-                G[:,1] = G[:,1] / Int_G
-                #Modification to account for shifted mean AoA from normalization
-                AoA_G_fit = np.trapz(G[:,1] * G[:,0], G[:,0])
-                time_shift = age - AoA_G_fit  
-                #print('time_shift, c_old, c_neu')
-                t_G_shift = G[:,0] + time_shift
-                c_int_shift = np.interp(t_G_shift, G[:,0], c_int)
-                #
+                fc_int = interpolate.interp1d(
+                    t_tmp, c_ref[wt], fill_value="extrapolate"
+                )
 
-                #pdb.set_trace()
-    
-                #c_tmp[n] = np.trapz(G[:,1] * c_int, G[:,0])
-                c_tmp[n] = np.trapz(G[:,1] * c_int_shift, G[:,0])
-                
+                c_int = fc_int(G[:, 0])
+                # #Normierung von G muss evtl. noch auf 30 Jahre begrenzt werden
+                Int_G = np.trapz(G[:, 1], G[:, 0])
+                # print('Integral over G: ',Int_G) # the integral over the age Spectrum;
+                # should be close to 1, otherwise choose a longer t_int
+                G[:, 1] = G[:, 1] / Int_G
+                # Modification to account for shifted mean AoA from normalization
+                AoA_G_fit = np.trapz(G[:, 1] * G[:, 0], G[:, 0])
+                time_shift = age - AoA_G_fit
+                # print('time_shift, c_old, c_neu')
+                t_G_shift = G[:, 0] + time_shift
+                c_int_shift = np.interp(t_G_shift, G[:, 0], c_int)
+                # c_tmp[n] = np.trapz(G[:,1] * c_int, G[:,0])
+                c_tmp[n] = np.trapz(G[:, 1] * c_int_shift, G[:, 0])
 
-        
         c2a = interpolate.interp1d(np.flip(c_tmp, 0), np.flip(a_tmp, 0))
 
         #        if comment:
         #            print(c_tmp, a_tmp)
 
         if nvd == 1:
-            #print(c_obs, max(c_tmp),min(c_tmp))
+            # print(c_obs, max(c_tmp),min(c_tmp))
             if (c_obs > min(c_tmp)) and (c_obs < max(c_tmp)):
                 a_obs = c2a(c_obs)[0]
                 if comment:
                     print("single value, folding age")
                     print(a_obs)
             else:
-                #a_obs = calculate_lag(
+                # a_obs = calculate_lag(
                 #    t_ref, c_ref, t_obs, c_obs, degree=3, comment=comment
-                #)
+                # )
                 a_obs = np.nan
                 print("single value outside of range; calculating lag")
-                print('LAG TIME METHOD NOT IMPLEMENTED YET!')
-                #raise SystemExit ("single value outside of range; calculating lag")
+                print("LAG TIME METHOD NOT IMPLEMENTED YET!")
+                # raise SystemExit ("single value outside of range; calculating lag")
                 if comment:
                     print("single value outside of range; calculating lag")
-                    print('LAG TIME METHOD NOT IMPLEMENTED YET!')
+                    print("LAG TIME METHOD NOT IMPLEMENTED YET!")
                     print(a_obs)
             if positiv:
                 a_obs = a_obs.clip(min=0)
         else:  # if array of values
-            
+
             vd2 = np.where(
                 np.logical_and((c_obs >= min(c_tmp)), (c_obs <= max(c_tmp)))
             )[0]
 
             # !!! -- FP-20230608
             # only used for fit method
-            #a_obs = calculate_lag(t_ref, c_ref, t_obs, c_obs, degree=2, comment=comment)
+            # a_obs = calculate_lag(t_ref, c_ref, t_obs, c_obs, degree=2, comment=comment)
             a_obs = np.zeros_like(c_obs) + np.nan
 
             if comment:
@@ -271,8 +275,3 @@ def Conc2Age_Convolution(
                 a_obs = a_obs.clip(min=0)
 
     return a_obs
-
-
-
-#t0 = dt.datetime.timestamp(dt.datetime(2000,1,1,0,0,tzinfo=dt.timezone.utc))
-
