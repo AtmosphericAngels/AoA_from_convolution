@@ -38,9 +38,26 @@ rom = 1.2
 
 SF6_to_AoA(t_obs, SF6_obs, rom)
 
-
+t_int = 2
 wt = np.where(
-    np.logical_and((t_ref < (t_obs[0])), (t_ref > (t_obs[0] - t_int)))
+    np.logical_and((SF6_ref_t < (t_obs)), (SF6_ref_t > (t_obs - t_int)))
 )[
     0
 ]  # why is here a "0"?
+
+wt.shape
+
+wt = np.where(
+    np.logical_and((SF6_ref_t < (t_obs)), (SF6_ref_t > (t_obs - t_int))))
+
+_wt = np.logical_and((SF6_ref_t < (t_obs)), (SF6_ref_t > (t_obs - t_int)))
+_wt
+len(wt)
+
+_wt_bool = (SF6_ref_t < (t_obs)) & (SF6_ref_t > (t_obs - t_int))
+
+SF6_ref_t[wt]
+
+SF6_ref_t[_wt]
+
+SF6_ref_t[_wt_bool]
