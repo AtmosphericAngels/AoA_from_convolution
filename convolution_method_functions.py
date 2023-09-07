@@ -135,16 +135,16 @@ def Conc2Age_Convolution(
     """
     c_ref = np.asarray([c_ref]).flatten()
     c_obs = np.asarray([c_obs]).flatten()
-    # t_obs = np.asarray([t_obs]).flatten()
 
-    # a_obs (age observed) contains the sought age of air values for every observed mixing ratio (c_obs)
-    # It is created as an array with the same shape as "c_obs" that contains only "nan" which will be replaced later on.
+    # a_obs (age observed) contains the sought age of air values for every
+    # observed mixing ratio (c_obs). It is created as an array with the same
+    # shape as "c_obs" that contains only "nan" which will be replaced later on.
     a_obs = c_obs * np.nan
 
-    # vd (short for "valid") contains the arguments of valid values in c_obs
-    vd = np.where(np.isfinite(c_obs))[0]
+    # vd (short for "valid") contains the arguments of valid values in
+    vd = np.isfinite(c_obs)
     # nvd is the number of valid values in c_obs
-    nvd = len(vd)
+    nvd = np.sum(vd)
 
     if nvd > 0:
         if comment:
@@ -164,8 +164,8 @@ def Conc2Age_Convolution(
 
         t = np.flip(t_tmp, 0)
 
-        # default: use resolution from observations
         if res == "c":
+            # default: use resolution from observations
             for n in np.arange(len(a_tmp)):
                 c_ref = c_ref[wt]
                 c_ref_rev = np.flip(c_ref, 0)
@@ -185,7 +185,7 @@ def Conc2Age_Convolution(
                 c_tmp[n] = np.trapz(c_ref_rev_int_shift * G, t)
 
         else:
-            # print('else resolution from G')
+            # use resolution from G
             for n in np.arange(len(a_tmp)):
                 age = a_tmp[n]
                 G = Calculate_AgeSpectrum_1D(age, rom)
@@ -195,15 +195,10 @@ def Conc2Age_Convolution(
                 )
 
                 c_int = fc_int(G[:, 0])
-                # #Normierung von G muss evtl. noch auf 30 Jahre begrenzt werden
                 Int_G = np.trapz(G[:, 1], G[:, 0])
-                # print('Integral over G: ',Int_G) # the integral over the age Spectrum;
-                # should be close to 1, otherwise choose a longer t_int
                 G[:, 1] = G[:, 1] / Int_G
-                # Modification to account for shifted mean AoA from normalization
                 AoA_G_fit = np.trapz(G[:, 1] * G[:, 0], G[:, 0])
                 time_shift = age - AoA_G_fit
-                # print('time_shift, c_old, c_neu')
                 t_G_shift = G[:, 0] + time_shift
                 c_int_shift = np.interp(t_G_shift, G[:, 0], c_int)
                 # c_tmp[n] = np.trapz(G[:,1] * c_int, G[:,0])
@@ -211,50 +206,29 @@ def Conc2Age_Convolution(
 
         c2a = interpolate.interp1d(np.flip(c_tmp, 0), np.flip(a_tmp, 0))
 
-        #        if comment:
-        #            print(c_tmp, a_tmp)
-
         if nvd == 1:
-            # print(c_obs, max(c_tmp),min(c_tmp))
+            # print(c_obs, max(c_tmp), min(c_tmp))
             if (c_obs > min(c_tmp)) and (c_obs < max(c_tmp)):
                 a_obs = c2a(c_obs)[0]
                 if comment:
                     print("single value, folding age")
                     print(a_obs)
             else:
-                # a_obs = calculate_lag(
-                #    t_ref, c_ref, t_obs, c_obs, degree=3, comment=comment
-                # )
                 a_obs = np.nan
-                print("single value outside of range; calculating lag")
-                print("LAG TIME METHOD NOT IMPLEMENTED YET!")
-                # raise SystemExit ("single value outside of range; calculating lag")
                 if comment:
-                    print("single value outside of range; calculating lag")
-                    print("LAG TIME METHOD NOT IMPLEMENTED YET!")
-                    print(a_obs)
+                    print("single value outside of range")
+                    print("a_obs:", a_obs)
+                    print("c_obs:", c_obs)
             if positiv:
                 a_obs = a_obs.clip(min=0)
         else:  # if array of values
-
-            vd2 = np.where(
-                np.logical_and((c_obs >= min(c_tmp)), (c_obs <= max(c_tmp)))
-            )[0]
-
-            # !!! -- FP-20230608
-            # only used for fit method
-            # a_obs = calculate_lag(t_ref, c_ref, t_obs, c_obs, degree=2, comment=comment)
+            vd2 = (c_obs >= min(c_tmp)) & (c_obs <= max(c_tmp))
             a_obs = np.zeros_like(c_obs) + np.nan
-
-            if comment:
-                print("array of values; lag times")
-                print(a_obs)
-
             a_obs[vd2] = c2a(c_obs[vd2])
             if comment:
                 print(
                     "array of values; folding age for age > 1 year; "
-                    "lag times below and for values out of range"
+                    "np.nan below and for values out of range"
                 )
                 print(a_obs)
             if positiv:
