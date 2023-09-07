@@ -61,3 +61,14 @@ SF6_ref_t[wt]
 SF6_ref_t[_wt]
 
 SF6_ref_t[_wt_bool]
+
+# %%
+SF6_obs = np.ones(10) * 9.5
+SF6_obs[4] = np.nan
+vd = np.isfinite(SF6_obs)
+vd
+# nvd is the number of valid values in c_obs
+nvd = np.sum(vd)
+nvd
+
+# %%
