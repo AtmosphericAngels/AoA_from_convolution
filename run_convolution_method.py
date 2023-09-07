@@ -33,12 +33,12 @@ SF6_ref_vmr = np.array(SF6_ref['vmr'])
 
 def SF6_to_AoA(t_obs, SF6_obs, rom):
 
-    # t_obs = time of observation in years (full year plus fraction of year e.g. 2005.6573 ) as array or scalar value
+    # t_obs = time of observation in years (full year plus fraction of year e.g. 2005.6573 ) scalar value
 
     # SF6_obs = SF6 mixing ratios at times of observation t_obs in pptV as array or scalar value
 
     # rom = ratio of first and second moment of inverse gaussian distribution (age spectrum)
-    
+
     # AGE OF AIR VALUES BELOW ONE YEAR CAN NOT BE CALCULATED AND WILL RESULT IN MISSING VALUES (nan)!
 
     # Age of Air values above 10 years can not be calculated and will result in missing values as well.
@@ -49,61 +49,57 @@ def SF6_to_AoA(t_obs, SF6_obs, rom):
 
     # Age of Air values above 10 years can not be calculated and will result in missing values as well.
 
-    t_obs = np.asarray([t_obs]).flatten()
-    
     SF6_AoA = Conc2Age_Convolution(t_ref = SF6_ref_t, c_ref = SF6_ref_vmr, t_obs = t_obs, c_obs = SF6_obs, rom = rom, res = 'G')
     return SF6_AoA
 
 
 def CO2_to_AoA(t_obs, CO2_obs, rom, CH4_obs = None):
 
-    # t_obs = time of observation in years (full year plus fraction of year e.g. 2005.6573 ) as array or scalar value
+    # t_obs = time of observation in years (full year plus fraction of year e.g. 2005.6573 )scalar value
 
     # CO2_obs = CO2 mixing ratios at times of observation t_obs in ppmV as array or scalar value
 
     # CH4_obs = CH4 mixing ratios at times of observation t_obs in ppbV as array or scalar value
 
-    # MAKE SURE TO USE THE CORRECT UNITS FOR CO2_obs (ppmV) AND CH4_obs (ppbV)!!!  
+    # MAKE SURE TO USE THE CORRECT UNITS FOR CO2_obs (ppmV) AND CH4_obs (ppbV)!!!
 
     # rom = ratio of first and second moment of inverse gaussian distribution (age spectrum)
-    
+
     # AGE OF AIR VALUES BELOW ONE YEAR CAN NOT BE CALCULATED AND WILL RESULT IN MISSING VALUES (nan)!
-    
+
     # Age of Air values above 10 years can not be calculated and will result in missing values as well.
 
-    # AGE OF AIR CORRECTION FOR SEASONALITY of CO2 NOT YET IMPLEMENTED!!! 
-    
-    t_obs = np.asarray([t_obs]).flatten()
-    
+    # AGE OF AIR CORRECTION FOR SEASONALITY of CO2 NOT YET IMPLEMENTED!!!
+
     # CO_AoA_raw contains the Age of Air values calculated WITHOUT methane correction for the observed CO2 mixing ratios
-    CO2_AoA_raw = Conc2Age_Convolution(t_ref = CO2_ref_t, c_ref = CO2_ref_vmr, t_obs = t_obs, c_obs = CO2_obs, rom = rom, res = 'G') 
+    CO2_AoA_raw = Conc2Age_Convolution(t_ref = CO2_ref_t, c_ref = CO2_ref_vmr, t_obs = t_obs, c_obs = CO2_obs, rom = rom, res = 'G')
 
     #print(CH4_obs)
-    
+
     if CH4_obs is None:
         print('WARNING! No observed CH4 values were given!')
         print('CH4 correction is not possible and the calculated Age of Air values will be too low!')
         return CO2_AoA_raw
-    
-   
+
+
 
     else:
         #========================================================================================
         # SIMPLIFIED METHANE CORRECTION
-        # A more sophisticated methane correction ought to be implemented in the (near) future 
+        # A more sophisticated methane correction ought to be implemented in the (near) future
         #========================================================================================
-        
+
         # Difference in time of observation and uncorrected Age of Air yields time in tropospheric record to take CH4 mixing ratios from
         t_CH4 = t_obs - CO2_AoA_raw
 
         # CH4 in ppmV transported from the troposphere to the point and time of observation in the stratosphere!
         CH4_tropo = interp1d(CH4_ref_t, CH4_ref_vmr, bounds_error=None, fill_value=np.nan)(t_CH4)/1000
-        
-        # Difference (in ppmV) between total CH4 transported from troposphere and observed CH4 still present at point and time of observation       
+
+        # Difference (in ppmV) between total CH4 transported from troposphere and observed CH4 still present at point and time of observation
         CO2_from_CH4 = CH4_tropo  - CH4_obs/1000
         CO2_from_CH4 =  np.asarray([CO2_from_CH4]).flatten()
 
-        # Check if CO2_from_CH4 contains any negative i.e. nonsensical values 
+        # Check if CO2_from_CH4 contains any negative i.e. nonsensical values
         CO2_from_CH4_fail_ind = np.where(CO2_from_CH4 < 0)[0]
 
 
@@ -113,11 +109,11 @@ def CO2_to_AoA(t_obs, CO2_obs, rom, CH4_obs = None):
             print('CO2_from_CH4 will be replaced with missing values (nan) for above values of t_obs')
             print('Please check if the correct units are used for CO2_obs (ppmV) and CH4_obs (ppbV)')
             CO2_from_CH4[CO2_from_CH4_fail_ind] = np.nan
-            
+
         #pdb.set_trace()
-        
+
         print(CO2_from_CH4, ' ppmV CO2 created from CH4 for given t_obs')
-        
+
         # Difference in observed CO2 and estimated CO2 created from CH4 yields corrected CO2 values
         CO2_corr = CO2_obs - CO2_from_CH4
 
