@@ -1,8 +1,9 @@
 import numpy as np
 import pandas as pd
 from pathlib import Path
+import time
 
-from toolpac.age.Conc2Age_Convolution import age_from_conv_old
+from toolpac.age.Conc2Age_Convolution import age_from_conv_old, age_from_conv
 
 from convolution_method_functions import Conc2Age_Convolution
 from run_convolution_method import *
@@ -102,8 +103,38 @@ wt
 SF6_ref_vmr[wt]
 np.asarray([SF6_ref_vmr]).flatten()[wt]
 
+age_from_conv(SF6_ref_t, SF6_ref_vmr, t_obs, SF6_obs, rom)
 age_from_conv_old(SF6_ref_t, SF6_ref_vmr, t_obs, SF6_obs, rom)
 Conc2Age_Convolution(SF6_ref_t, SF6_ref_vmr, t_obs, SF6_obs, rom, res="G")
 Conc2Age_Convolution(SF6_ref_t, SF6_ref_vmr, t_obs, SF6_obs, rom, res="c")
 
 wt[wt]
+
+# %%
+
+t_obs = 2018
+SF6_obs = np.arange(0, 1, 0.1) + 8.3
+rom = 1.2
+
+# %%
+%%timeit
+SF6_to_AoA(t_obs, SF6_obs, rom, res="G")
+#%%
+%%timeit
+SF6_to_AoA(t_obs, SF6_obs, rom, res="c")
+#%%
+%%timeit
+age_from_conv(SF6_ref_t, SF6_ref_vmr, t_obs, SF6_obs, rom)
+#%%
+%%timeit
+age_from_conv(SF6_ref_t, SF6_ref_vmr, t_obs, SF6_obs, rom, a_obs_init_method="quadratic_lag")
+#%%
+%%timeit
+age_from_conv_old(SF6_ref_t, SF6_ref_vmr, t_obs, SF6_obs, rom)
+#%%
+%%timeit
+Conc2Age_Convolution(SF6_ref_t, SF6_ref_vmr, t_obs, SF6_obs, rom, res="G")
+#%%
+%%timeit
+Conc2Age_Convolution(SF6_ref_t, SF6_ref_vmr, t_obs, SF6_obs, rom, res="c")
+# %%
