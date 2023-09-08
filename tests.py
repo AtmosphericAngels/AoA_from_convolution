@@ -2,12 +2,18 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 
+from toolpac.age.Conc2Age_Convolution import age_from_conv_old
+
+from convolution_method_functions import Conc2Age_Convolution
 from run_convolution_method import *
 
-fdir = Path('tropical_time_series')
-SF6_ref_file = fdir / "SF6_tropical_surface_time_series_Ray.txt"
 
-SF6_ref = pd.read_csv(SF6_ref_file, delim_whitespace=True, header=5, names=["time", "vmr"])
+fdir = Path('tropical_time_series')
+SF6_ref_file = fdir / "SF6_tropical_surface_time_series_Engel.txt"
+
+SF6_ref = pd.read_csv(SF6_ref_file, delim_whitespace=True, header=7, names=["time", "vmr"])
+
+SF6_ref
 
 SF6_ref_t = np.array(SF6_ref["time"])
 SF6_ref_vmr = np.array(SF6_ref["vmr"])
@@ -72,3 +78,32 @@ nvd = np.sum(vd)
 nvd
 
 # %%
+t_obs
+SF6_obs
+rom
+
+age_from_conv_old(SF6_ref_t, SF6_ref_vmr, t_obs, SF6_obs, rom)
+
+t_obs = 2018
+SF6_obs = 8.5
+rom
+
+SF6_to_AoA(t_obs, SF6_obs, rom, res="G")
+SF6_to_AoA(t_obs, SF6_obs, rom, res="c")
+
+pd.Series(SF6_ref_t)
+SF6_ref_vmr.shape
+
+np.asarray([SF6_ref_vmr]).flatten().shape
+
+t_int = 2
+wt = (SF6_ref_t < (t_obs)) & (SF6_ref_t > (t_obs - t_int))
+wt
+SF6_ref_vmr[wt]
+np.asarray([SF6_ref_vmr]).flatten()[wt]
+
+age_from_conv_old(SF6_ref_t, SF6_ref_vmr, t_obs, SF6_obs, rom)
+Conc2Age_Convolution(SF6_ref_t, SF6_ref_vmr, t_obs, SF6_obs, rom, res="G")
+Conc2Age_Convolution(SF6_ref_t, SF6_ref_vmr, t_obs, SF6_obs, rom, res="c")
+
+wt[wt]

@@ -31,7 +31,7 @@ SF6_ref_vmr = np.array(SF6_ref['vmr'])
 
 
 
-def SF6_to_AoA(t_obs, SF6_obs, rom):
+def SF6_to_AoA(t_obs, SF6_obs, rom, res="G"):
 
     # t_obs = time of observation in years (full year plus fraction of year e.g. 2005.6573 ) scalar value
 
@@ -49,7 +49,7 @@ def SF6_to_AoA(t_obs, SF6_obs, rom):
 
     # Age of Air values above 10 years can not be calculated and will result in missing values as well.
 
-    SF6_AoA = Conc2Age_Convolution(t_ref = SF6_ref_t, c_ref = SF6_ref_vmr, t_obs = t_obs, c_obs = SF6_obs, rom = rom, res = 'G')
+    SF6_AoA = Conc2Age_Convolution(t_ref = SF6_ref_t, c_ref = SF6_ref_vmr, t_obs = t_obs, c_obs = SF6_obs, rom = rom, res = res)
     return SF6_AoA
 
 

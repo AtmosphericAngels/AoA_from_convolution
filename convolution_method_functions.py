@@ -167,8 +167,7 @@ def Conc2Age_Convolution(
         if res == "c":
             # default: use resolution from observations
             for n in np.arange(len(a_tmp)):
-                c_ref = c_ref[wt]
-                c_ref_rev = np.flip(c_ref, 0)
+                c_ref_rev = np.flip(c_ref[wt], 0)
                 age = a_tmp[n]
                 width = (rom * age) ** 0.5
                 G = (age ** 3 / (4 * np.pi * width ** 2 * t ** 3)) ** 0.5 * np.exp(
