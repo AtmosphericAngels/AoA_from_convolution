@@ -105,9 +105,7 @@ def Conc2Age_Convolution(
                 c_ref_rev = np.flip(c_ref[wt], 0)
                 age = a_tmp[n]
                 width = (rom * age) ** 0.5
-                G = (age ** 3 / (4 * np.pi * width ** 2 * t ** 3)) ** 0.5 * np.exp(
-                    -age * (t - age) ** 2 / (4 * width ** 2 * t)
-                )
+                G = _inverse_gaussian(age, width, t)
                 Int_G = np.trapz(G, t)
                 G = G / Int_G
                 # Modification to account for shifted mean AoA from normalization
@@ -170,6 +168,14 @@ def Conc2Age_Convolution(
 
     return a_obs
 
+
+# %%
+def _inverse_gaussian(m_age, width, t):
+    G = (m_age ** 3 / (4 * np.pi * width ** 2 * t ** 3)) ** 0.5 * np.exp(
+        -m_age * (t - m_age) ** 2 / (4 * width ** 2 * t)
+    )
+    return G
+
 # %%
 
 
@@ -214,9 +220,7 @@ def Calculate_AgeSpectrum_1D(m_age, rom, nyy=30, nmnth=12, per_month=30, plot=Fa
     G = np.zeros((len(t) + 1, 2))
 
     G[1:, 0] = t
-    G[1:, 1] = (m_age ** 3 / (4 * np.pi * w ** 2 * t ** 3)) ** 0.5 * np.exp(
-        -m_age * (t - m_age) ** 2 / (4 * w ** 2 * t)
-    )
+    G[1:, 1] = _inverse_gaussian(m_age, w, t)
 
     G[:, 1] = G[:, 1] / np.trapz(G[:, 1], x=G[:, 0])
     if plot:
