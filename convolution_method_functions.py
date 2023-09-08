@@ -122,11 +122,12 @@ def Conc2Age_Convolution(
                 age = a_tmp[n]
                 G = Calculate_AgeSpectrum_1D(age, rom)
 
-                fc_int = interpolate.interp1d(
-                    t_tmp, c_ref[wt], fill_value="extrapolate"
-                )
+                if n == 0:  # c_int only needs to be created once
+                    fc_int = interpolate.interp1d(
+                        t_tmp, c_ref[wt], fill_value="extrapolate"
+                    )
+                    c_int = fc_int(G[:, 0])
 
-                c_int = fc_int(G[:, 0])
                 Int_G = np.trapz(G[:, 1], G[:, 0])
                 G[:, 1] = G[:, 1] / Int_G
                 AoA_G_fit = np.trapz(G[:, 1] * G[:, 0], G[:, 0])
