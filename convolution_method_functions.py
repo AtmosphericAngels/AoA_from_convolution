@@ -58,7 +58,8 @@ def Conc2Age_Convolution(
         set this keyword to replace all negative values by 0 (not tested)
     comment: bool, optional
         print some info to the console. The default is False.
-    res: which rersolution is used for the forward calculation?
+    res: str
+        which rersolution is used for the forward calculation?
         c (Tracer Time series) or G (age spectrum, then use
         calculate_age_spectrum_1d and the default resolution in there).
         The default is c.
