@@ -76,7 +76,7 @@ def Conc2Age_Convolution(
     # shape as "c_obs" that contains only "nan" which will be replaced later on.
     a_obs = c_obs * np.nan
 
-    # vd (short for "valid") contains the arguments of valid values in
+    # vd (short for "valid") contains the arguments of valid values in c_obs
     vd = np.isfinite(c_obs)
     # nvd is the number of valid values in c_obs
     nvd = np.sum(vd)
@@ -94,6 +94,7 @@ def Conc2Age_Convolution(
 
         c_tmp = a_tmp * np.nan
 
+        # wt is a boolean array to select time series data in the correct interval
         wt = (t_ref < (t_obs)) & (t_ref > (t_obs - t_int))
         t_tmp = t_obs - t_ref[wt]
 
@@ -140,7 +141,6 @@ def Conc2Age_Convolution(
         c2a = interpolate.interp1d(np.flip(c_tmp, 0), np.flip(a_tmp, 0))
 
         if nvd == 1:
-            # print(c_obs, max(c_tmp), min(c_tmp))
             if (c_obs > min(c_tmp)) and (c_obs < max(c_tmp)):
                 a_obs = c2a(c_obs)[0]
                 if comment:
@@ -172,6 +172,11 @@ def Conc2Age_Convolution(
 
 # %%
 def _inverse_gaussian(m_age, width, t):
+    """Calculate transit time probability distribution G from moments and transit times.
+
+    Age spectrum for 1-D flow advection model with diffusion :
+    G(t) = m_age³/(4*pi*width*t³) * exp[ -m_age*(t-m_age)²/(4*width*t) ]
+    """
     G = (m_age ** 3 / (4 * np.pi * width ** 2 * t ** 3)) ** 0.5 * np.exp(
         -m_age * (t - m_age) ** 2 / (4 * width ** 2 * t)
     )
@@ -181,7 +186,7 @@ def _inverse_gaussian(m_age, width, t):
 
 
 def Calculate_AgeSpectrum_1D(m_age, rom, nyy=30, nmnth=12, per_month=30, plot=False):
-    """Calculate transit time probability distribution.
+    """Create transit time probability distribution from scratch.
 
     based on Calculate_AgeSpectrum_1D by Harald Boenisch written in IDL
     Age spectrum for 1-D flow advection model with diffusion :
@@ -192,9 +197,6 @@ def Calculate_AgeSpectrum_1D(m_age, rom, nyy=30, nmnth=12, per_month=30, plot=Fa
     --------
     m_age : float
         mean age is the first moment of the age spectrum distribution
-    w_age : float
-        width age is the second moment of the m_age centered age
-        spectrum distribution
     rom : float
         ratio of moments
     nyy : int, optional
