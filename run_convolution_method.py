@@ -148,8 +148,8 @@ def CO2_to_AoA(t_obs, CO2_obs, rom, CH4_obs=None, res="G"):
 
         if len(CO2_from_CH4_fail_ind) > 0:
             print(
-                "WARNING! OBSERVED CH4 LARGER THAN TRANSPORTED CH4 FOR t_obs in ",
-                t_obs[CO2_from_CH4_fail_ind],
+                f"WARNING! OBSERVED CH4 LARGER THAN TRANSPORTED CH4 FOR CH4_obs "
+                f"{CH4_obs[CO2_from_CH4_fail_ind]} in {t_obs}"
             )
             print(
                 "CO2_from_CH4 will be replaced with missing values (nan) "
