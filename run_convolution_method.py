@@ -9,7 +9,7 @@ trace gas mixing ratio reference time series.
 import pandas as pd
 import numpy as np
 from scipy.interpolate import interp1d
-from run_convolution_method import Conc2Age_Convolution
+from convolution_method_functions import Conc2Age_Convolution
 
 
 # Tropical time series for CO2, SF6 and CH4 from Eric Ray
@@ -76,7 +76,7 @@ def SF6_to_AoA(t_obs, SF6_obs, rom, res="G"):
     return SF6_AoA
 
 
-def CO2_to_AoA(t_obs, CO2_obs, rom, CH4_obs=None, res="G"):
+def CO2_to_AoA(t_obs, CO2_obs, rom, CH4_obs=None, res="G", verbose=False):
     """Calculate mean age from CO2 observations.
 
     MAKE SURE TO USE THE CORRECT UNITS FOR CO2_obs (ppmV) AND CH4_obs (ppbV)!
@@ -110,6 +110,8 @@ def CO2_to_AoA(t_obs, CO2_obs, rom, CH4_obs=None, res="G"):
         c (Tracer Time series) or G (age spectrum, then use
         calculate_age_spectrum_1d and the default resolution in there).
         The default is G.
+    verbose: bool
+        Print additional information on function call. The default is False
     """
     CO2_AoA_raw = Conc2Age_Convolution(
         t_ref=CO2_ref_t, c_ref=CO2_ref_vmr, t_obs=t_obs, c_obs=CO2_obs, rom=rom, res=res
@@ -161,7 +163,8 @@ def CO2_to_AoA(t_obs, CO2_obs, rom, CH4_obs=None, res="G"):
             )
             CO2_from_CH4[CO2_from_CH4_fail_ind] = np.nan
 
-        print(CO2_from_CH4, " ppmV CO2 created from CH4 for given t_obs")
+        if verbose:
+            print(CO2_from_CH4, " ppmV CO2 created from CH4 for given t_obs")
 
         # Difference in observed CO2 and estimated CO2 created from CH4 yields corrected CO2 values
         CO2_corr = CO2_obs - CO2_from_CH4
