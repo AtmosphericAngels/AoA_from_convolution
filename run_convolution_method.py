@@ -18,7 +18,7 @@ CH4_ref_file = "tropical_time_series/CH4_tropical_surface_time_series_Ray.txt"
 SF6_ref_file = "tropical_time_series/SF6_tropical_surface_time_series_Ray.txt"
 
 # Alternative tropical time series for SF6 from Andreas Engel and Harald Boensch
-SF6_ref_file = "tropical_time_series/SF6_tropical_surface_time_series_Engel.txt"
+SF6_ref_file_Engel = "tropical_time_series/SF6_tropical_surface_time_series_Engel.txt"
 
 
 # load tropical time series for CO2
@@ -42,11 +42,18 @@ SF6_ref = pd.read_csv(
 SF6_ref_t = np.array(SF6_ref["time"])
 SF6_ref_vmr = np.array(SF6_ref["vmr"])
 
+# load tropical time series for SF6 from Engel et al
+SF6_ref_Engel = pd.read_csv(
+    SF6_ref_file_Engel, delim_whitespace=True, header=7, names=["time", "vmr"]
+)
+SF6_ref_t_Engel = np.array(SF6_ref_Engel["time"])
+SF6_ref_vmr_Engel = np.array(SF6_ref_Engel["vmr"])
+
 
 # %%
 
 
-def SF6_to_AoA(t_obs, SF6_obs, rom, res="G"):
+def SF6_to_AoA(t_obs, SF6_obs, rom, res="G", ref_select="Ray"):
     """Calculate mean age from SF6 observations.
 
     AGE OF AIR VALUES BELOW ONE YEAR CAN NOT BE CALCULATED AND WILL RESULT IN MISSING VALUES (nan)!
@@ -69,9 +76,18 @@ def SF6_to_AoA(t_obs, SF6_obs, rom, res="G"):
         c (Tracer Time series) or G (age spectrum, then use
         calculate_age_spectrum_1d and the default resolution in there).
         The default is G.
+    ref_select: str, chosse from "Ray" and "Engel"
+        select which SF6 reference time series to use. The default is "Ray".
     """
+    if ref_select == "Ray":
+        SF6reft = SF6_ref_t
+        SF6refvmr = SF6_ref_vmr
+    elif ref_select == "Engel":
+        SF6reft = SF6_ref_t_Engel
+        SF6refvmr = SF6_ref_vmr_Engel
+
     SF6_AoA = Conc2Age_Convolution(
-        t_ref=SF6_ref_t, c_ref=SF6_ref_vmr, t_obs=t_obs, c_obs=SF6_obs, rom=rom, res=res
+        t_ref=SF6reft, c_ref=SF6refvmr, t_obs=t_obs, c_obs=SF6_obs, rom=rom, res=res
     )
     return SF6_AoA
 
