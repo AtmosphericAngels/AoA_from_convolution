@@ -2,10 +2,24 @@
  tools to calculate the mean age of air from mixing ratios relative to a reference time series
 
 ## How to use the code
+0. Make sure to have the mandatory packages installed in your python environment:
+```
+pandas
+numpy
+scipy
+matplotlib
+```
+the code has been tested with the following package versions, but should work for a lot of other versions, too: 
+```
+pandas=2.1.1
+numpy=1.26.2
+scipy=1.11.3
+matplotlib=3.8.0
+```
 
-1. Download the package
-2. E.g. create an empty python file (e.g. `my_project.py`) within your downloaded package
-3. within `my_project.py` you can then use the `SF6_to_AoA()` and the `CO2_to_AoA()` functions to derive mean age from observations:
+2. Download the package
+3. E.g. create an empty python file (e.g. `my_project.py`) within your downloaded package
+4. within `my_project.py` you can then use the `SF6_to_AoA()` and the `CO2_to_AoA()` functions to derive mean age from observations:
 ```
 # import everything from the run_convolution_method.py file into your current python session:
 
